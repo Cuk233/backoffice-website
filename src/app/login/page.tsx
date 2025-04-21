@@ -26,14 +26,9 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loading, error, isAuthenticated, logout } = useAuth();
+  const { login, loading, error, isAuthenticated } = useAuth();
   const router = useRouter();
   const theme = useTheme();
-
-  // Add this useEffect to clear the session when the login page is mounted
-  useEffect(() => {
-    logout(); 
-  }, [logout]);
 
   // Use useEffect for redirection instead of doing it during render
   useEffect(() => {
