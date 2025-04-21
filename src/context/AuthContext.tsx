@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { authService } from '@/services/api';
 
 interface User {
   id: number;
@@ -11,7 +12,8 @@ interface User {
   firstName: string;
   lastName: string;
   image: string;
-  token: string;
+  accessToken: string;
+  refreshToken: string;
 }
 
 interface AuthContextType {
@@ -40,8 +42,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const storedUser = localStorage.getItem('user');
           if (storedUser) {
             try {
-              setUser(JSON.parse(storedUser));
-            } catch (e) {
+              const userData = JSON.parse(storedUser);
+              
+              // Check if token exists and is valid
+              if (userData.accessToken) {
+                try {
+                  // Verify token by making a request to get current user
+                  // const currentUser = await authService.getCurrentUser();
+                  // If we get here, token is valid
+                  setUser(userData);
+                } catch {
+                  localStorage.removeItem('user');
+                }
+              }
+            } catch {
               localStorage.removeItem('user');
             }
           }
@@ -61,12 +75,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(true);
       setError(null);
       
-      const response = await axios.post('https://dummyjson.com/auth/login', {
-        username,
-        password
-      });
+      const userData = await authService.login(username, password);
       
-      const userData = response.data;
       setUser(userData);
       localStorage.setItem('user', JSON.stringify(userData));
       router.push('/dashboard');

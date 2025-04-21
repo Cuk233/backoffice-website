@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { userService } from '@/services/api';
-import { User, UsersResponse } from '@/types';
+import { User } from '@/types';
 import {
   Box,
   Typography,
@@ -14,6 +14,7 @@ import {
   TableHead,
   TableRow,
   TablePagination,
+  TableSortLabel,
   Avatar,
   Chip,
   TextField,
@@ -25,68 +26,77 @@ import {
   Card,
   IconButton,
   Tooltip,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Snackbar,
+  Stack,
+  Grid,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
-import MailOutlineIcon from '@mui/icons-material/MailOutline';
-import PhoneIcon from '@mui/icons-material/Phone';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import UserDetailDialog from './components/UserDetailDialog';
+import UserFormDialog from './components/UserFormDialog';
+
+// Define sort and filter types
+type SortField = 'firstName' | 'lastName' | 'email' | 'age' | 'username';
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState<number>(0);
-  const [rowsPerPage, setRowsPerPage] = useState<number>(10);
-  const [total, setTotal] = useState<number>(0);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortField, setSortField] = useState<SortField>('firstName');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [userFormOpen, setUserFormOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  
   const theme = useTheme();
 
-  const fetchUsers = async (limit: number, skip: number, query: string = '') => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      
-      let response: UsersResponse;
-      
-      if (query.trim()) {
-        response = await userService.searchUsers(query);
-      } else {
-        response = await userService.getAllUsers(limit, skip);
-      }
-      
+      const response = await userService.getAllUsers({
+        limit: rowsPerPage,
+        skip: page * rowsPerPage,
+        sortBy: sortField,
+        order: sortOrder,
+      });
       setUsers(response.users);
-      setTotal(response.total);
-    } catch (err) {
-      setError('Failed to fetch users. Please try again later.');
-      console.error('Error fetching users:', err);
+      setTotalUsers(response.total);
+    } catch (error) {
+      setError('Failed to fetch users');
+      console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, rowsPerPage, sortField, sortOrder]);
 
   useEffect(() => {
-    fetchUsers(rowsPerPage, page * rowsPerPage);
-  }, [page, rowsPerPage]);
+    fetchUsers();
+  }, [fetchUsers]);
 
   useEffect(() => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
+    if (searchQuery) {
+      const timeoutId = setTimeout(() => {
+        fetchUsers();
+      }, 500);
+      return () => clearTimeout(timeoutId);
     }
-    
-    const timeout = setTimeout(() => {
-      setPage(0);
-      fetchUsers(rowsPerPage, 0, searchQuery);
-    }, 500);
-    
-    setSearchTimeout(timeout);
-    
-    return () => {
-      if (searchTimeout) {
-        clearTimeout(searchTimeout);
-      }
-    };
-  }, [searchQuery]);
+  }, [searchQuery, fetchUsers]);
 
   const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
@@ -99,6 +109,65 @@ export default function UsersPage() {
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(event.target.value);
+  };
+
+  const handleSortRequest = (field: SortField) => {
+    const isAsc = sortField === field && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortField(field);
+  };
+
+  const handleAddUser = () => {
+    setSelectedUser(null);
+    setUserFormOpen(true);
+  };
+
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setUserFormOpen(true);
+  };
+
+  const handleDeleteUser = (user: User) => {
+    setSelectedUser(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleViewDetails = (user: User) => {
+    setSelectedUser(user);
+    setShowDetailDialog(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (selectedUser) {
+      try {
+        await userService.deleteUser(selectedUser.id);
+        setSnackbarMessage('User deleted successfully');
+        fetchUsers();
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        setSnackbarMessage('Failed to delete user');
+      }
+    }
+    setDeleteDialogOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleUserFormSubmit = async (userData: Partial<User>) => {
+    try {
+      if (selectedUser) {
+        await userService.updateUser(selectedUser.id, userData);
+        setSnackbarMessage('User updated successfully');
+      } else {
+        await userService.addUser(userData);
+        setSnackbarMessage('User created successfully');
+      }
+      fetchUsers();
+      setUserFormOpen(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error('Error saving user:', error);
+      setSnackbarMessage('Failed to save user');
+    }
   };
 
   return (
@@ -122,26 +191,42 @@ export default function UsersPage() {
           background: 'linear-gradient(135deg, #FFFFFF 0%, rgba(34, 146, 164, 0.05) 100%)',
         }}
       >
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Search users by name, email, or username..."
-          value={searchQuery}
-          onChange={handleSearchChange}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon color="action" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 1,
-              backgroundColor: alpha('#FFFFFF', 0.8),
-            },
-          }}
-        />
+        <Grid container spacing={2} alignItems="center">
+          <Grid item xs={12} md={8}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search users by name, email, or username..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon color="action" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: 1,
+                  backgroundColor: alpha('#FFFFFF', 0.8),
+                },
+              }}
+            />
+          </Grid>
+          <Grid item xs={12} md={4}>
+            <Stack direction="row" spacing={2} justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={handleAddUser}
+              >
+                Add User
+              </Button>
+            </Stack>
+          </Grid>
+        </Grid>
       </Card>
 
       {error && (
@@ -172,9 +257,33 @@ export default function UsersPage() {
                 background: 'linear-gradient(90deg, rgba(0, 52, 95, 0.1) 0%, rgba(34, 146, 164, 0.1) 100%)',
               }}>
                 <TableCell sx={{ fontWeight: 600 }}>User</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Username</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Email</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>Age</TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>
+                  <TableSortLabel
+                    active={sortField === 'username'}
+                    direction={sortField === 'username' ? sortOrder : 'asc'}
+                    onClick={() => handleSortRequest('username')}
+                  >
+                    Username
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>
+                  <TableSortLabel
+                    active={sortField === 'email'}
+                    direction={sortField === 'email' ? sortOrder : 'asc'}
+                    onClick={() => handleSortRequest('email')}
+                  >
+                    Email
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>
+                  <TableSortLabel
+                    active={sortField === 'age'}
+                    direction={sortField === 'age' ? sortOrder : 'asc'}
+                    onClick={() => handleSortRequest('age')}
+                  >
+                    Age
+                  </TableSortLabel>
+                </TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Gender</TableCell>
                 <TableCell sx={{ fontWeight: 600 }}>Actions</TableCell>
               </TableRow>
@@ -265,18 +374,30 @@ export default function UsersPage() {
                     <TableCell>
                       <Box sx={{ display: 'flex' }}>
                         <Tooltip title="View Details">
-                          <IconButton size="small" sx={{ color: theme.palette.primary.main }}>
+                          <IconButton 
+                            size="small" 
+                            sx={{ color: theme.palette.primary.main }}
+                            onClick={() => handleViewDetails(user)}
+                          >
                             <InfoOutlinedIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Send Email">
-                          <IconButton size="small" sx={{ color: theme.palette.primary.main }}>
-                            <MailOutlineIcon fontSize="small" />
+                        <Tooltip title="Edit User">
+                          <IconButton 
+                            size="small" 
+                            sx={{ color: theme.palette.primary.main }}
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        <Tooltip title="Call">
-                          <IconButton size="small" sx={{ color: theme.palette.primary.main }}>
-                            <PhoneIcon fontSize="small" />
+                        <Tooltip title="Delete User">
+                          <IconButton 
+                            size="small" 
+                            sx={{ color: theme.palette.error.main }}
+                            onClick={() => handleDeleteUser(user)}
+                          >
+                            <DeleteIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       </Box>
@@ -288,9 +409,9 @@ export default function UsersPage() {
           </Table>
         </TableContainer>
         <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
+          rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={total}
+          count={totalUsers}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -301,6 +422,48 @@ export default function UsersPage() {
           }}
         />
       </Paper>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete {selectedUser?.firstName} {selectedUser?.lastName}? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button onClick={confirmDeleteUser} color="error" variant="contained">
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* User Detail Dialog */}
+      {selectedUser && (
+        <UserDetailDialog
+          open={showDetailDialog}
+          user={selectedUser}
+          onClose={() => setShowDetailDialog(false)}
+        />
+      )}
+
+      {/* User Form Dialog */}
+      <UserFormDialog
+        open={userFormOpen}
+        user={selectedUser}
+        isEditMode={!!selectedUser}
+        onClose={() => setUserFormOpen(false)}
+        onSubmit={handleUserFormSubmit}
+      />
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={!!snackbarMessage}
+        autoHideDuration={6000}
+        onClose={() => setSnackbarMessage('')}
+        message={snackbarMessage}
+      />
     </Box>
   );
 } 

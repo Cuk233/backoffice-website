@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
+import { ReduxProvider } from '@/redux/provider';
 
 // Create a theme instance with the teal/blue gradient color palette
 const theme = createTheme({
@@ -137,11 +138,13 @@ const theme = createTheme({
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        {children}
-      </AuthProvider>
-    </ThemeProvider>
+    <ReduxProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </ThemeProvider>
+    </ReduxProvider>
   );
 } 

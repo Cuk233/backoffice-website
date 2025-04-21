@@ -26,14 +26,20 @@ export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, loading, error, isAuthenticated } = useAuth();
+  const { login, loading, error, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const theme = useTheme();
+
+  // Add this useEffect to clear the session when the login page is mounted
+  useEffect(() => {
+    logout(); 
+  }, [logout]);
 
   // Use useEffect for redirection instead of doing it during render
   useEffect(() => {
     if (isAuthenticated) {
-      router.push('/dashboard');
+      // Use the router.replace for a cleaner navigation without adding to history stack
+      router.replace('/dashboard');
     }
   }, [isAuthenticated, router]);
 
@@ -53,7 +59,7 @@ export default function LoginPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'linear-gradient(135deg, #F8F9FA 0%, rgba(34, 146, 164, 0.1) 100%)',
+        background: 'linear-gradient(135deg, #F8F9FA 100%, rgba(34, 146, 164, 0.1) 0%)',
         py: 12,
         px: 2,
       }}

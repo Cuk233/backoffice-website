@@ -27,6 +27,7 @@ import {
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PeopleIcon from '@mui/icons-material/People';
+import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
 import LogoutIcon from '@mui/icons-material/Logout';
 import Link from 'next/link';
 
@@ -43,7 +44,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   // Use useEffect for redirection instead of doing it during render
   useEffect(() => {
     if (!authLoading && !isAuthenticated && typeof window !== 'undefined') {
-      router.push('/login');
+      router.replace('/login');
     } else {
       setLoading(false);
     }
@@ -95,56 +96,76 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </Box>
       <List sx={{ flexGrow: 1, px: 1 }}>
         <ListItem disablePadding sx={{ mb: 1 }}>
-          <ListItemButton 
-            component={Link} 
-            href="/dashboard"
-            sx={{ 
-              borderRadius: 1,
-              '&.active, &:active': {
-                bgcolor: alpha(theme.palette.primary.main, 0.15),
-              },
-              '&:hover': {
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <DashboardIcon color="primary" />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Dashboard" 
-              primaryTypographyProps={{ 
-                fontWeight: 500,
-                color: 'text.primary'
-              }} 
-            />
-          </ListItemButton>
+          <Link href="/dashboard" style={{ textDecoration: 'none', width: '100%' }}>
+            <ListItemButton 
+              sx={{ 
+                borderRadius: 1,
+                '&.active, &:active': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                },
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                }
+              }}
+            >
+              <ListItemIcon>
+                <DashboardIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText primary="Dashboard" />
+            </ListItemButton>
+          </Link>
         </ListItem>
         <ListItem disablePadding sx={{ mb: 1 }}>
-          <ListItemButton 
-            component={Link} 
-            href="/dashboard/users"
-            sx={{ 
-              borderRadius: 1,
-              '&.active, &:active': {
-                bgcolor: alpha(theme.palette.primary.main, 0.15),
-              },
-              '&:hover': {
-                bgcolor: alpha(theme.palette.primary.main, 0.1),
-              }
-            }}
-          >
-            <ListItemIcon>
-              <PeopleIcon color="primary" />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Users" 
-              primaryTypographyProps={{ 
-                fontWeight: 500,
-                color: 'text.primary'
-              }} 
-            />
-          </ListItemButton>
+          <Link href="/dashboard/users" style={{ textDecoration: 'none', width: '100%' }}>
+            <ListItemButton 
+              sx={{ 
+                borderRadius: 1,
+                '&.active, &:active': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                },
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                }
+              }}
+            >
+              <ListItemIcon>
+                <PeopleIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Users" 
+                primaryTypographyProps={{ 
+                  fontWeight: 500,
+                  color: 'text.primary'
+                }} 
+              />
+            </ListItemButton>
+          </Link>
+        </ListItem>
+        <ListItem disablePadding sx={{ mb: 1 }}>
+          <Link href="/dashboard/products" style={{ textDecoration: 'none', width: '100%' }}>
+            <ListItemButton 
+              sx={{ 
+                borderRadius: 1,
+                '&.active, &:active': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.15),
+                },
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, 0.1),
+                }
+              }}
+            >
+              <ListItemIcon>
+                <ShoppingBasketIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText 
+                primary="Products" 
+                primaryTypographyProps={{ 
+                  fontWeight: 500,
+                  color: 'text.primary'
+                }} 
+              />
+            </ListItemButton>
+          </Link>
         </ListItem>
       </List>
       <Divider />

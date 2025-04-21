@@ -18,9 +18,9 @@ import {
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import EmailIcon from '@mui/icons-material/Email';
-import PhoneIcon from '@mui/icons-material/Phone';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import ArticleIcon from '@mui/icons-material/Article';
+import ShoppingBasketIcon from '@mui/icons-material/ShoppingBasket';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import Link from 'next/link';
 
@@ -185,6 +185,49 @@ export default function Dashboard() {
                   <Grid item xs={12} sm={6}>
                     <Card 
                       sx={{ 
+                        background: 'linear-gradient(135deg, #2292A4 0%, #44BBA4 100%)',
+                        color: '#FFFFFF',
+                        height: '100%',
+                        transition: 'transform 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-4px)',
+                          boxShadow: '0 8px 16px rgba(0,0,0,0.1)',
+                        },
+                      }}
+                    >
+                      <CardContent sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                          <ShoppingBasketIcon sx={{ mr: 1 }} />
+                          <Typography variant="h6" fontWeight="bold">Product Catalog</Typography>
+                        </Box>
+                        <Typography variant="body2" sx={{ mb: 2, flexGrow: 1 }}>
+                          Browse, search, and filter products from our catalog
+                        </Typography>
+                        <Button 
+                          component={Link}
+                          href="/dashboard/products"
+                          variant="contained" 
+                          color="inherit" 
+                          sx={{ 
+                            color: theme.palette.primary.main,
+                            bgcolor: '#FFFFFF',
+                            '&:hover': {
+                              bgcolor: alpha('#FFFFFF', 0.9),
+                            },
+                            alignSelf: 'flex-start',
+                            fontWeight: 600,
+                          }}
+                          endIcon={<ArrowForwardIcon />}
+                        >
+                          View Products
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                  
+                  <Grid item xs={12} sm={6}>
+                    <Card 
+                      sx={{ 
                         border: `1px solid ${theme.palette.divider}`,
                         height: '100%',
                         transition: 'transform 0.2s',
@@ -203,21 +246,24 @@ export default function Dashboard() {
                         <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
                           This project uses DummyJSON API for authentication and user data
                         </Typography>
-                        <Button 
-                          variant="outlined" 
-                          color="primary"
-                          component="a"
-                          href="https://dummyjson.com/docs"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          sx={{ 
-                            alignSelf: 'flex-start',
-                            fontWeight: 600,
-                          }}
-                          endIcon={<ArrowForwardIcon />}
+                        <a 
+                          href="https://dummyjson.com/docs" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          style={{ textDecoration: 'none' }}
                         >
-                          View Docs
-                        </Button>
+                          <Button 
+                            variant="outlined" 
+                            color="primary"
+                            sx={{ 
+                              alignSelf: 'flex-start',
+                              fontWeight: 600,
+                            }}
+                            endIcon={<ArrowForwardIcon />}
+                          >
+                            View Docs
+                          </Button>
+                        </a>
                       </CardContent>
                     </Card>
                   </Grid>
