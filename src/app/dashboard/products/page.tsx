@@ -176,33 +176,6 @@ export default function ProductsPage() {
           
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
-              <InputLabel id="category-select-label">Category</InputLabel>
-              <Select
-                labelId="category-select-label"
-                id="category-select"
-                value={selectedCategory || ''}
-                label="Category"
-                onChange={handleCategoryChange}
-                startAdornment={
-                  <InputAdornment position="start">
-                    <FilterListIcon fontSize="small" />
-                  </InputAdornment>
-                }
-              >
-                <MenuItem value="">
-                  <em>All Categories</em>
-                </MenuItem>
-                {categories.map((category) => (
-                  <MenuItem key={String(category)} value={String(category)}>
-                    {formatCategory(category)}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          
-          <Grid item xs={12} md={3}>
-            <FormControl fullWidth>
               <InputLabel id="sort-select-label">Sort By</InputLabel>
               <Select
                 labelId="sort-select-label"
