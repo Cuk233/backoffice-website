@@ -5,9 +5,7 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks/reduxHooks';
 import { 
   fetchProducts, 
   fetchProductCategories, 
-  fetchProductsByCategory,
   searchProducts,
-  setSelectedCategory,
   resetProducts,
   sortProductsByPrice,
   sortProductsByRating
@@ -39,7 +37,6 @@ import {
   Paper,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import SortIcon from '@mui/icons-material/Sort';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
@@ -81,16 +78,6 @@ export default function ProductsPage() {
     }
   }, [dispatch, items.length, categories.length]);
   
-  // Handle category selection
-  const handleCategoryChange = (event: SelectChangeEvent) => {
-    const category = event.target.value;
-    if (category) {
-      dispatch(setSelectedCategory(category));
-      dispatch(fetchProductsByCategory(category));
-    } else {
-      dispatch(resetProducts());
-    }
-  };
   
   // Handle search
   const handleSearch = () => {
